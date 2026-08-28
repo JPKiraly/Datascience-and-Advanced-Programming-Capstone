@@ -1,0 +1,4 @@
+specification,baseline_f1,augmented_f1,commodity_delta_f1,interpretation
+Primary q75 target + 3m volatility,0.8516949152542372,0.8547189819724285,0.0030240667181912206,Primary frozen Logistic test result
+Alternative q80 target + 3m volatility,0.8577777777777778,0.8513966480446927,-0.0063811297330850225,Stricter target; same frozen Logistic hyperparameters
+Primary q75 target + 6m volatility,0.8507936507936508,0.8486772486772487,-0.002116402116402072,Alternative volatility window; same frozen Logistic hyperparameters

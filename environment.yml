@@ -1,0 +1,14 @@
+name: commodity-conflict-capstone
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - numpy=2.3.5
+  - pandas=2.2.3
+  - scikit-learn=1.8.0
+  - matplotlib=3.10.8
+  - openpyxl=3.1.5
+  - pytest=8.4.2
+  - pip
+  - pip:
+      - torch==2.10.0

@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+.DS_Store
+results/generated/*
+!results/generated/.gitkeep
+data/raw/GEDEvent_v26_1.csv
+data/raw/CMO-Historical-Data-Monthly.xlsx

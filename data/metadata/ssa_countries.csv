@@ -1,0 +1,49 @@
+country_name,country_code,ucdp_country_name,continent,sub_region,ucdp_event_rows_present
+Angola,AGO,Angola,Africa,Sub-Saharan Africa,True
+Benin,BEN,Benin,Africa,Sub-Saharan Africa,True
+Botswana,BWA,Botswana,Africa,Sub-Saharan Africa,True
+Burkina Faso,BFA,Burkina Faso,Africa,Sub-Saharan Africa,True
+Burundi,BDI,Burundi,Africa,Sub-Saharan Africa,True
+Cabo Verde,CPV,Cabo Verde,Africa,Sub-Saharan Africa,False
+Cameroon,CMR,Cameroon,Africa,Sub-Saharan Africa,True
+Central African Republic,CAF,Central African Republic,Africa,Sub-Saharan Africa,True
+Chad,TCD,Chad,Africa,Sub-Saharan Africa,True
+Comoros,COM,Comoros,Africa,Sub-Saharan Africa,True
+Congo,COG,Congo,Africa,Sub-Saharan Africa,True
+"Congo, Democratic Republic of the",COD,DR Congo (Zaire),Africa,Sub-Saharan Africa,True
+Côte d'Ivoire,CIV,Ivory Coast,Africa,Sub-Saharan Africa,True
+Djibouti,DJI,Djibouti,Africa,Sub-Saharan Africa,True
+Equatorial Guinea,GNQ,Equatorial Guinea,Africa,Sub-Saharan Africa,False
+Eritrea,ERI,Eritrea,Africa,Sub-Saharan Africa,True
+Eswatini,SWZ,Kingdom of eSwatini (Swaziland),Africa,Sub-Saharan Africa,True
+Ethiopia,ETH,Ethiopia,Africa,Sub-Saharan Africa,True
+Gabon,GAB,Gabon,Africa,Sub-Saharan Africa,False
+Gambia,GMB,Gambia,Africa,Sub-Saharan Africa,True
+Ghana,GHA,Ghana,Africa,Sub-Saharan Africa,True
+Guinea,GIN,Guinea,Africa,Sub-Saharan Africa,True
+Guinea-Bissau,GNB,Guinea-Bissau,Africa,Sub-Saharan Africa,True
+Kenya,KEN,Kenya,Africa,Sub-Saharan Africa,True
+Lesotho,LSO,Lesotho,Africa,Sub-Saharan Africa,True
+Liberia,LBR,Liberia,Africa,Sub-Saharan Africa,True
+Madagascar,MDG,Madagascar (Malagasy),Africa,Sub-Saharan Africa,True
+Malawi,MWI,Malawi,Africa,Sub-Saharan Africa,False
+Mali,MLI,Mali,Africa,Sub-Saharan Africa,True
+Mauritania,MRT,Mauritania,Africa,Sub-Saharan Africa,True
+Mauritius,MUS,Mauritius,Africa,Sub-Saharan Africa,False
+Mozambique,MOZ,Mozambique,Africa,Sub-Saharan Africa,True
+Namibia,NAM,Namibia,Africa,Sub-Saharan Africa,True
+Niger,NER,Niger,Africa,Sub-Saharan Africa,True
+Nigeria,NGA,Nigeria,Africa,Sub-Saharan Africa,True
+Rwanda,RWA,Rwanda,Africa,Sub-Saharan Africa,True
+Sao Tome and Principe,STP,Sao Tome and Principe,Africa,Sub-Saharan Africa,False
+Senegal,SEN,Senegal,Africa,Sub-Saharan Africa,True
+Seychelles,SYC,Seychelles,Africa,Sub-Saharan Africa,False
+Sierra Leone,SLE,Sierra Leone,Africa,Sub-Saharan Africa,True
+Somalia,SOM,Somalia,Africa,Sub-Saharan Africa,True
+South Africa,ZAF,South Africa,Africa,Sub-Saharan Africa,True
+South Sudan,SSD,South Sudan,Africa,Sub-Saharan Africa,True
+"Tanzania, United Republic of",TZA,Tanzania,Africa,Sub-Saharan Africa,True
+Togo,TGO,Togo,Africa,Sub-Saharan Africa,True
+Uganda,UGA,Uganda,Africa,Sub-Saharan Africa,True
+Zambia,ZMB,Zambia,Africa,Sub-Saharan Africa,True
+Zimbabwe,ZWE,Zimbabwe (Rhodesia),Africa,Sub-Saharan Africa,True
