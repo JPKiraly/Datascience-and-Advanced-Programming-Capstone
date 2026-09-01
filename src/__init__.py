@@ -1,1 +1,0 @@
-"""Commodity-conflict capstone package."""

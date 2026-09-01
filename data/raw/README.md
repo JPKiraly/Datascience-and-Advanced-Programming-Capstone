@@ -1,10 +1,16 @@
-# Original raw sources
+# Raw data
 
-The submitted repository does **not** commit the full global UCDP GED file because it is about 262 MB and exceeds GitHub's normal 100 MB per-file limit.
+The repository includes the smaller source files used to rebuild the modeling table:
 
-To run `python main.py --from-raw`, place these exact files here:
+- `ucdp_ssa_2000_2025.csv`
+- `world_bank_commodity_indices_1999_10_2025_12.csv`
+- `ssa_countries.csv`
 
-- `GEDEvent_v26_1.csv` — UCDP Georeferenced Event Dataset (GED), Global v26.1.
-- `CMO-Historical-Data-Monthly.xlsx` — World Bank Commodity Price Data (Pink Sheet), monthly historical workbook used for the project (workbook header: updated August 04, 2026).
+To rebuild these files from the original sources, add the following files to this folder:
 
-The compact versioned extracts used for the submitted analysis are committed under `data/interim/`, so the default analysis and `--rebuild-data` mode do not require downloading the full raw files.
+- `GEDEvent_v26_1.csv` from UCDP GED Global v26.1
+- `CMO-Historical-Data-Monthly.xlsx` from the World Bank Pink Sheet
+
+UCDP: https://ucdp.uu.se/downloads/
+
+World Bank Pink Sheet: https://www.worldbank.org/en/research/commodity-markets

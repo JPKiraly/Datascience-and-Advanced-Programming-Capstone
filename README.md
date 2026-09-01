@@ -1,272 +1,167 @@
-# Commodity-Price Dynamics and One-Month-Ahead Conflict Prediction in Sub-Saharan Africa
+# Commodity-Price Dynamics and Conflict Prediction in Sub-Saharan Africa
 
-Reproducible capstone project for **Introduction to Data Science and Advanced Programming**.
+The project examines the following question:
 
-The repository root also contains the required project proposal (`PROPOSAL.md`) and the report (`REPORT.pdf`). The editable Word version of the report is kept under `docs/REPORT_EDITABLE.docx` for final personalization before submission.
+Can global commodity-price changes and short-run volatility improve the one-month-ahead prediction of high-conflict months in Sub-Saharan Africa beyond information already contained in recent conflict history?
 
-## Research question
+The analysis covers 48 Sub-Saharan African countries from 2000 to 2025. It combines UCDP conflict data with monthly World Bank Pink Sheet commodity indices. The task at hand is a classification problem: information available in month t is used to predict whether month t+1 is a high-conflict month.
 
-> **Can global commodity-price changes and short-run volatility improve the one-month-ahead prediction of high-conflict months in Sub-Saharan Africa beyond information contained in recent conflict history?**
-
-The project is explicitly **predictive, not causal**. The unit of observation is the country-month: predictors observed in month `t` classify whether month `t+1` is a country-specific high-conflict month.
-
-## Main result
-
-Recent conflict history carries most of the predictive information. Commodity dynamics provide only a weak and specification-sensitive incremental signal. On the held-out 2022-2025 test period, the frozen commodity-augmented Logistic Regression improves F1 by about **+0.003** relative to the same Logistic model without commodity variables. The best frozen family-level test model is the conflict-history MLP (**F1 = 0.857**), closely followed by commodity-augmented Logistic Regression (**F1 = 0.855**).
-
-Robustness checks weaken the commodity result: the Logistic commodity increment becomes slightly negative under a stricter q80 target and a six-month commodity-volatility window. The final interpretation is therefore that commodity-price dynamics add, at most, modest predictive information beyond the much stronger signal in recent conflict history.
-
-## Quick reproduction
-
-Create the environment, then run the project from the repository root.
+## Setup
 
 ### Conda
 
-```bash
+```text
 conda env create -f environment.yml
 conda activate commodity-conflict-capstone
 python main.py
 ```
 
-### pip / virtual environment
+### pip
 
-```bash
+```text
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
 
-`python main.py`:
+On Windows, the command can also be:
 
-1. loads the frozen country-month modeling table;
-2. combines training and validation after model selection has already been frozen;
-3. refits the frozen baseline and commodity-augmented versions of Logistic Regression, kNN, Decision Tree, AdaBoost and the MLP;
-4. evaluates them on the held-out 2022-2025 test sample;
-5. reproduces the stored final metrics; and
-6. writes regenerated tables and a comparison figure to `results/generated/`.
+```text
+py main.py
+```
 
-The script checks the reproduced metrics against `results/reference/final_test_all_models.csv` and exits with an error if they differ materially.
+## Running the project
 
-## Rebuild the modeling table
+The main analysis is run with:
 
-The repository contains compact, versioned source snapshots sufficient to recreate the full modeling table:
+```text
+python main.py
+```
 
-```bash
+The script trains the final baseline and augmented versions of the five models, evaluates them on the 2022-2025 test period, and saves the results in the results/ folder.
+
+## Rebuilding the data
+
+The repository includes the smaller data files needed to reconstruct the modeling table. To rebuild it, run:
+
+```text
 python main.py --rebuild-data
 ```
 
-This reconstructs the balanced country-month conflict panel, commodity features, conflict-history predictors, target, and chronological split. The resulting 14,832-row table is checked column-by-column against the frozen canonical table.
-
-## Rebuild from the original raw files
-
-The full global UCDP file is about 262 MB and therefore cannot be stored as a normal GitHub file. To reproduce the source snapshots themselves, place these files under `data/raw/`:
+The full UCDP dataset is too large to include in the repository. To rebuild the smaller source files from the original UCDP and World Bank files, place these two files in data/raw/:
 
 ```text
-data/raw/GEDEvent_v26_1.csv
-data/raw/CMO-Historical-Data-Monthly.xlsx
+GEDEvent_v26_1.csv
+CMO-Historical-Data-Monthly.xlsx
 ```
 
-Then run:
+and run:
 
-```bash
+```text
 python main.py --from-raw
 ```
 
-The expected World Bank workbook is the monthly historical Pink Sheet workbook used in the project (its header states **Updated on August 04, 2026**). The UCDP source is **GED Global v26.1**.
-
-Official source pages:
-
-- UCDP dataset downloads: https://ucdp.uu.se/downloads/
-- World Bank Commodity Markets / Pink Sheet: https://www.worldbank.org/en/research/commodity-markets
-
-## Optional: rerun validation model selection
-
-The final test results do **not** depend on rerunning hyperparameter selection, because the model choices are frozen and stored. For a full validation-grid rerun:
-
-```bash
-python main.py --rerun-selection
-```
-
-This is substantially slower than the default command, especially for the neural-network grid. The selection code receives only the training and validation partitions; test rows are never passed to it.
+Download pages are listed in data/raw/README.md.
 
 ## Data construction
 
-### Country universe
+UCDP events are aggregated to country-month observations. Events with date_prec <= 4 are kept for the monthly analysis as they represent a precise assignment of the event to a specific month. When an event covers dates in two calendar months, it is assigned to the month containing the midpoint of its start and end dates.
 
-The analysis uses a fixed balanced panel of **48 sovereign Sub-Saharan African countries**. Countries without UCDP events remain in the panel with explicit zero-event months.
+Five World Bank commodity indices are used: Energy, Food, Fertilizers, Metals & Minerals, and Precious Metals. For each index, I calculated the monthly percentage change and the standard deviation of the last three monthly changes.
 
-### UCDP events
+The baseline predictors are country, month of the year, current and lagged conflict events and fatalities, and three-month conflict totals. The augmented specification adds the ten commodity variables.
 
-UCDP events with `date_prec <= 4` are eligible for the primary monthly allocation. When an event spans multiple dates, the assigned month is the month containing the midpoint between `date_start` and `date_end`. Events with `date_prec = 5` remain in the versioned source snapshot for auditability but are excluded from primary monthly allocation because their month is not observed precisely.
-
-### Commodity variables
-
-Five World Bank monthly commodity indices are used:
-
-- Energy
-- Food
-- Fertilizers
-- Metals & Minerals
-- Precious Metals
-
-For each index:
+For each country, a high-conflict threshold is calculated from the 2000-2018 training period:
 
 ```text
-monthly_change_t = 100 * (Index_t / Index_(t-1) - 1)
-3m_volatility_t = sample SD(change_t, change_(t-1), change_(t-2))
+cutoff = max(2, floor(75th percentile) + 1)
 ```
 
-No clipping, winsorization, smoothing or interpolation is applied to the primary commodity signals.
+A target value of 1 means that the following month reaches or exceeds this country-specific cutoff.
 
-### Conflict-history predictors
-
-The baseline uses:
-
-- country;
-- month-of-year seasonality;
-- current-month events and fatalities;
-- one-month-lagged events and fatalities;
-- three-month event and fatality sums.
-
-The augmented feature set adds the ten commodity change/volatility variables.
-
-## Target construction
-
-For each country `c`, the primary threshold is estimated using **January 2000-December 2018 outcomes only**:
-
-```text
-cutoff_c = max(2, floor(Q75_c) + 1)
-```
-
-The target is 1 when next month's UCDP event count is at least the fixed country cutoff.
-
-The chronological target split is:
-
-| Partition | Target months | Rows | Positive rate |
-|---|---|---:|---:|
-| Train | Apr 2000-Dec 2018 | 10,800 | 8.58% |
+| Sample | Target period | Observations | High-conflict share |
+| --- | --- | --- | --- |
+| Training | Apr 2000-Dec 2018 | 10,800 | 8.58% |
 | Validation | Jan 2019-Dec 2021 | 1,728 | 21.24% |
 | Test | Jan 2022-Dec 2025 | 2,304 | 22.01% |
 
-The test sample remained untouched until the model and feature-set choices were frozen.
-
 ## Models and preprocessing
 
-Five classifiers are implemented:
+Five classifiers are compared:
 
-1. Logistic Regression
-2. k-Nearest Neighbors
-3. Decision Tree
-4. AdaBoost with decision stumps
-5. Feed-forward MLP
+- Logistic Regression
 
-A majority classifier and a one-month conflict-persistence rule provide benchmarks.
+- k-Nearest Neighbors (kNN)
 
-Country and month are one-hot encoded. Logistic Regression, kNN and the MLP use numeric scaling fit on the relevant training sample only. Validation selected `log1p` conflict counts for the final Logistic and baseline MLP specifications. Tree-based models use raw numeric predictors. The MLP is implemented in **PyTorch**, because that was the reproducible neural-network runtime available during the final experiment.
+- Decision Tree
 
-Primary model selection uses **validation F1**, with precision, recall, accuracy and confusion matrices reported alongside it.
+- AdaBoost
 
-## Final held-out test results
+- Multilayer Perceptron (MLP)
 
-Frozen family winners:
+The project also includes a majority benchmark and a persistence benchmark.
 
-| Model | Frozen feature set | Test F1 | Precision | Recall | Accuracy |
-|---|---|---:|---:|---:|---:|
-| MLP | Baseline | **0.857** | 0.917 | 0.805 | 0.941 |
-| Logistic Regression | Augmented | **0.855** | 0.924 | 0.795 | 0.941 |
+Country and month are converted with one-hot encoding. Logistic Regression, kNN and the MLP use standardized numerical variables. For these three models, raw and log1p conflict variables were compared during validation. Decision Tree and AdaBoost use the original numerical values.
+
+The final model settings are stored in src/models.py. They were selected using the validation period before the test results were evaluated.
+
+## Main results
+
+| Model | Feature set | F1 | Precision | Recall | Accuracy |
+| --- | --- | --- | --- | --- | --- |
+| MLP | Baseline | 0.857 | 0.917 | 0.805 | 0.941 |
+| Logistic Regression | Augmented | 0.855 | 0.924 | 0.795 | 0.941 |
 | Persistence | Benchmark | 0.846 | 0.843 | 0.848 | 0.932 |
 | kNN | Baseline | 0.844 | 0.935 | 0.769 | 0.938 |
 | AdaBoost | Augmented | 0.832 | 0.879 | 0.789 | 0.930 |
 | Decision Tree | Baseline | 0.802 | 0.876 | 0.740 | 0.920 |
 
-Commodity test-F1 increments (augmented minus baseline):
+Adding commodity variables changes test F1 as follows:
 
-| Model | ΔF1 |
-|---|---:|
-| Logistic Regression | **+0.0030** |
-| kNN | -0.0446 |
-| Decision Tree | 0.0000 |
-| AdaBoost | -0.0123 |
-| MLP | -0.0043 |
+| Model | Change in F1 |
+| --- | --- |
+| Logistic Regression | +0.003 |
+| kNN | -0.045 |
+| Decision Tree | 0.000 |
+| AdaBoost | -0.012 |
+| MLP | -0.004 |
 
-## Robustness
+The main result is therefore that recent conflict history (persistence) is a strong predictor, while the global commodity variables provide little additional improvement.
 
-For frozen Logistic hyperparameters:
-
-| Specification | Baseline F1 | Augmented F1 | Commodity ΔF1 |
-|---|---:|---:|---:|
-| Primary q75 target + 3m volatility | 0.852 | 0.855 | **+0.0030** |
-| Alternative q80 target + 3m volatility | 0.858 | 0.851 | **-0.0064** |
-| Primary q75 target + 6m volatility | 0.851 | 0.849 | **-0.0021** |
-
-These results support a weak and specification-sensitive commodity signal rather than a robust improvement.
+The small positive result for Logistic Regression also disappears in the two robustness checks reported in the paper as per a stricter 80th-percentile conflict target and a six-month volatility measure.
 
 ## Repository structure
 
 ```text
-.
+commodity_conflict_capstone/
 ├── README.md
 ├── PROPOSAL.md
-├── REPORT.pdf
-├── SUBMISSION_CHECKLIST.md
-├── main.py
-├── requirements.txt
 ├── environment.yml
-├── pyproject.toml
-├── pytest.ini
-├── CITATION.cff
+├── requirements.txt
+├── main.py
 ├── src/
 │   ├── __init__.py
 │   ├── data_loader.py
-│   ├── data_pipeline.py
-│   ├── config.py
-│   ├── preprocessing.py
 │   ├── models.py
-│   ├── evaluation.py
-│   └── model_selection.py
+│   └── evaluation.py
 ├── data/
-│   ├── metadata/
-│   ├── interim/
-│   ├── processed/
+│   ├── modeling_table.csv
 │   └── raw/
+│       ├── README.md
+│       ├── ssa_countries.csv
+│       ├── ucdp_ssa_2000_2025.csv
+│       └── world_bank_commodity_indices_1999_10_2025_12.csv
 ├── results/
-│   ├── reference/
-│   └── generated/
-├── tests/
-└── docs/
-    └── REPORT_EDITABLE.docx
+└── notebooks/
 ```
-
-## Code quality
-
-The Python source is organized into small modules under `src/` and uses descriptive function and variable names. Source files follow a consistent Black-compatible style (88-character line limit), with the formatting target documented in `pyproject.toml`. Comments and docstrings focus on methodological reasons—especially leakage prevention, temporal precision, frozen model selection, and deterministic evaluation—rather than narrating routine syntax.
-
-Reproducibility is centralized through `RANDOM_STATE = 42`. Estimators that expose a `random_state` receive it explicitly; deterministic components such as kNN, `StandardScaler`, and one-hot encoding do not expose such a parameter. The PyTorch MLP seeds Python, NumPy, PyTorch, and its minibatch generator.
 
 ## Reproducibility checks
 
-Run:
-
-```bash
-pytest
-python main.py --rebuild-data
+```text
 python main.py
+python main.py --rebuild-data
 ```
 
-In the packaged repository these checks pass. The rebuilt modeling table matches the frozen canonical table exactly, while the default final evaluation reproduces the stored test metrics within the documented numerical tolerance (`0.01`). In the final submission check, the maximum absolute metric difference was approximately `0.00206`, arising from the PyTorch MLP; deterministic scikit-learn results reproduce exactly or to ordinary floating-point precision.
+## AI mention
 
-## GitHub
-
-The folder is prepared to be committed as a GitHub repository. The global UCDP raw file is explicitly excluded through `.gitignore`; the compact reproducibility snapshot is included. See `docs/GITHUB_SETUP.md` for the exact initialization and push commands.
-
-## Data acknowledgements
-
-UCDP GED should be cited using UCDP's version-specific citation and the foundational GED paper: Sundberg, Ralph, and Erik Melander (2013), *Introducing the UCDP Georeferenced Event Dataset*, Journal of Peace Research 50(4), 523-532.
-
-Commodity data are from the World Bank **Commodity Price Data (The Pink Sheet)**.
-
-## AI use
-
-Generative AI was used as a programming, debugging, organization and writing assistant. It was not used to create the underlying observations or outcomes. See `docs/AI_USE.md`.
+ChatGPT was used to support code drafting and debugging, clarify theoretical questions alongside the course material, and help structure the data pipeline, model comparison, reproducibility steps, and advised on the planning for the overall project. It was also used, together with DeepL, to support translation from French to English and to review the clarity of some parts of the report
