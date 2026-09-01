@@ -9,7 +9,18 @@ from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardSc
 TARGET = "target_high_conflict"
 CATEGORICAL_FEATURES = ["country_code", "month_of_year"]
 CONFLICT_FEATURES = ["events_t", "fatalities_t", "events_lag1", "fatalities_lag1", "events_3m_sum", "fatalities_3m_sum"]
-COMMODITY_FEATURES = ["energy_change_pct", "energy_volatility_3m_pct", "food_change_pct", "food_volatility_3m_pct", "fertilizers_change_pct", "fertilizers_volatility_3m_pct", "metals_minerals_change_pct", "metals_minerals_volatility_3m_pct", "precious_metals_change_pct", "precious_metals_volatility_3m_pct"]
+COMMODITY_FEATURES = [
+    "energy_change_pct",
+    "energy_volatility_3m_pct",
+    "food_change_pct",
+    "food_volatility_3m_pct",
+    "fertilizers_change_pct",
+    "fertilizers_volatility_3m_pct",
+    "metals_minerals_change_pct",
+    "metals_minerals_volatility_3m_pct",
+    "precious_metals_change_pct",
+    "precious_metals_volatility_3m_pct",
+]
 BASELINE_FEATURES = CATEGORICAL_FEATURES + CONFLICT_FEATURES
 AUGMENTED_FEATURES = BASELINE_FEATURES + COMMODITY_FEATURES
 INDEX_COLUMNS = ["energy_index", "food_index", "fertilizers_index", "metals_minerals_index", "precious_metals_index"]
@@ -71,7 +82,31 @@ def extract_ucdp_snapshot(raw_csv, countries_csv, output_csv):
         chunk["violence_type_label"] = chunk["type_of_violence"].map({1: "state-based violence", 2: "non-state violence", 3: "one-sided violence"})
         chunk["monthly_eligible"] = chunk["date_prec"] <= 4
         chunk = chunk.rename(columns={"id": "event_id", "best": "fatalities_best", "low": "fatalities_low", "high": "fatalities_high"})
-        pieces.append(chunk[["event_id", "year", "country_name", "country_code", "ucdp_country_name", "type_of_violence", "violence_type_label", "event_clarity", "date_prec", "date_start", "date_end", "deaths_a", "deaths_b", "deaths_civilians", "deaths_unknown", "fatalities_best", "fatalities_low", "fatalities_high", "monthly_eligible"]])
+        pieces.append(
+            chunk[
+                [
+                    "event_id",
+                    "year",
+                    "country_name",
+                    "country_code",
+                    "ucdp_country_name",
+                    "type_of_violence",
+                    "violence_type_label",
+                    "event_clarity",
+                    "date_prec",
+                    "date_start",
+                    "date_end",
+                    "deaths_a",
+                    "deaths_b",
+                    "deaths_civilians",
+                    "deaths_unknown",
+                    "fatalities_best",
+                    "fatalities_low",
+                    "fatalities_high",
+                    "monthly_eligible",
+                ]
+            ]
+        )
 
     snapshot = pd.concat(pieces, ignore_index=True)
     snapshot.to_csv(output_csv, index=False)
@@ -101,7 +136,7 @@ def build_conflict_panel(events_csv, countries_csv):
     eligible["date"] = midpoint.dt.to_period("M").dt.to_timestamp()
     aggregated = eligible.groupby(["country_code", "date"], as_index=False).agg(event_count_total=("event_id", "count"), fatalities_best_total=("fatalities_best", "sum"))
     dates = pd.date_range("2000-01-01", "2025-12-01", freq="MS")
-    panel = pd.MultiIndex.from_product([countries["country_code"], dates], names=["country_code", "date"]).to_frame(index=False)
+    panel = pd.MultiIndex.from_product([countries["country_code"], dates], names=["country_code", "date"],).to_frame(index=False)
     panel = panel.merge(countries[["country_code", "country_name", "ucdp_country_name"]], on="country_code", how="left", validate="many_to_one")
     panel = panel.merge(aggregated, on=["country_code", "date"], how="left", validate="one_to_one")
     panel[["event_count_total", "fatalities_best_total"]] = panel[["event_count_total", "fatalities_best_total"]].fillna(0)
@@ -133,8 +168,8 @@ def build_modeling_table(events_csv, indices_csv, countries_csv):
     df["fatalities_t"] = df["fatalities_best_total"]
     df["events_lag1"] = grouped["event_count_total"].shift(1)
     df["fatalities_lag1"] = grouped["fatalities_best_total"].shift(1)
-    df["events_3m_sum"] = grouped["event_count_total"].rolling(3).sum().reset_index(level=0, drop=True)
-    df["fatalities_3m_sum"] = grouped["fatalities_best_total"].rolling(3).sum().reset_index(level=0, drop=True)
+    df["events_3m_sum"] = (grouped["event_count_total"].rolling(3).sum().reset_index(level=0, drop=True))
+    df["fatalities_3m_sum"] = (grouped["fatalities_best_total"].rolling(3).sum().reset_index(level=0, drop=True))
     df["month_of_year"] = df["date"].dt.month
 
     threshold_sample = df[(df["date"] >= "2000-01-01") & (df["date"] <= "2018-12-01")]
@@ -152,7 +187,27 @@ def build_modeling_table(events_csv, indices_csv, countries_csv):
     df["feature_month"] = df["date"].dt.strftime("%Y-%m-%d")
     df["target_month"] = df["target_month"].dt.strftime("%Y-%m-%d")
 
-    columns = ["observation_id", "country_code", "country_name", "feature_month", "target_month", "target_split", "month_of_year", "events_t", "fatalities_t", "events_lag1", "fatalities_lag1", "events_3m_sum", "fatalities_3m_sum", *COMMODITY_FEATURES, TARGET, "target_events_t_plus_1", "target_fatalities_t_plus_1", "train_event_q75", "high_conflict_cutoff_events"]
+    columns = [
+        "observation_id",
+        "country_code",
+        "country_name",
+        "feature_month",
+        "target_month",
+        "target_split",
+        "month_of_year",
+        "events_t",
+        "fatalities_t",
+        "events_lag1",
+        "fatalities_lag1",
+        "events_3m_sum",
+        "fatalities_3m_sum",
+        *COMMODITY_FEATURES,
+        TARGET,
+        "target_events_t_plus_1",
+        "target_fatalities_t_plus_1",
+        "train_event_q75",
+        "high_conflict_cutoff_events",
+    ]
     return df[columns].reset_index(drop=True)
 
 
@@ -167,7 +222,7 @@ def check_rebuild(rebuilt, canonical_csv):
             b = pd.to_numeric(rebuilt[column], errors="coerce").to_numpy(float)
             if not np.allclose(a, b, rtol=1e-10, atol=1e-10, equal_nan=True):
                 raise AssertionError(f"Mismatch in {column}")
-        elif not np.array_equal(canonical[column].astype(str).to_numpy(), rebuilt[column].astype(str).to_numpy()):
+        elif not np.array_equal(canonical[column].astype(str).to_numpy(), rebuilt[column].astype(str).to_numpy(),):
             raise AssertionError(f"Mismatch in {column}")
 
     return True
