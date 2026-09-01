@@ -15,35 +15,17 @@ from .evaluation import binary_metrics
 RANDOM_STATE = 42
 
 PAIRED_CONFIGS = {
-    "logistic_regression": {
-        "baseline": {"log_conflict": True, "C": 0.1, "class_weight": None},
-        "augmented": {"log_conflict": True, "C": 0.1, "class_weight": None},
-    },
-    "knn": {
-        "baseline": {"log_conflict": True, "n_neighbors": 21, "weights": "distance"},
-        "augmented": {"log_conflict": True, "n_neighbors": 21, "weights": "distance"},
-    },
-    "decision_tree": {
-        "baseline": {"max_depth": 3, "min_samples_leaf": 20},
-        "augmented": {"max_depth": 3, "min_samples_leaf": 20},
-    },
-    "adaboost": {
-        "baseline": {"n_estimators": 200, "learning_rate": 1.0},
-        "augmented": {"n_estimators": 200, "learning_rate": 0.5},
-    },
+    "logistic_regression": {"baseline": {"log_conflict": True, "C": 0.1, "class_weight": None}, "augmented": {"log_conflict": True, "C": 0.1, "class_weight": None}},
+    "knn": {"baseline": {"log_conflict": True, "n_neighbors": 21, "weights": "distance"}, "augmented": {"log_conflict": True, "n_neighbors": 21, "weights": "distance"}},
+    "decision_tree": {"baseline": {"max_depth": 3, "min_samples_leaf": 20}, "augmented": {"max_depth": 3, "min_samples_leaf": 20}},
+    "adaboost": {"baseline": {"n_estimators": 200, "learning_rate": 1.0}, "augmented": {"n_estimators": 200, "learning_rate": 0.5}},
     "mlp": {
         "baseline": {"log_conflict": True, "architecture": (64, 32), "learning_rate": 0.001, "batch_size": 1024, "final_epochs": 30},
         "augmented": {"log_conflict": False, "architecture": (32,), "learning_rate": 0.001, "batch_size": 1024, "final_epochs": 100},
     },
 }
 
-FAMILY_WINNERS = {
-    "logistic_regression": "augmented",
-    "knn": "baseline",
-    "decision_tree": "baseline",
-    "adaboost": "augmented",
-    "mlp": "baseline",
-}
+FAMILY_WINNERS = {"logistic_regression": "augmented", "knn": "baseline", "decision_tree": "baseline", "adaboost": "augmented", "mlp": "baseline"}
 
 
 def _transform(train, test, feature_set, model_type, log_conflict=False):
@@ -122,7 +104,7 @@ def fit_predict(train, test, model_family, feature_set, config):
 
 
 def _sort_results(rows):
-    return pd.DataFrame(rows).sort_values(["f1", "recall", "precision", "accuracy"], ascending=False).reset_index(drop=True)
+    return (pd.DataFrame(rows) .sort_values(["f1", "recall", "precision", "accuracy"], ascending=False) .reset_index(drop=True))
 
 
 def logistic_validation(train, validation):
@@ -173,7 +155,7 @@ def tree_validation(train, validation):
                 predictions = model.fit(x_train, y_train).predict(x_val)
                 rows.append({"feature_set": feature_set, "max_depth": depth, "min_samples_leaf": leaf, **binary_metrics(y_val, predictions)})
     df = _sort_results(rows)
-    return df.sort_values(["f1", "recall", "precision", "accuracy", "min_samples_leaf"], ascending=[False, False, False, False, False]).reset_index(drop=True)
+    return df.sort_values(["f1", "recall", "precision", "accuracy", "min_samples_leaf"], ascending=[False, False, False, False, False],).reset_index(drop=True)
 
 
 def adaboost_validation(train, validation):
@@ -251,6 +233,15 @@ def mlp_validation(train, validation):
                     model.load_state_dict(best_state)
                     with torch.no_grad():
                         predictions = (torch.sigmoid(model(x_val)).numpy().reshape(-1) >= 0.5).astype(int)
-                    rows.append({"feature_set": feature_set, "log_conflict": log_conflict, "architecture": "-".join(map(str, architecture)), "learning_rate": learning_rate, "best_epoch": best_epoch, **binary_metrics(y_val_array, predictions)})
+                    rows.append(
+                        {
+                            "feature_set": feature_set,
+                            "log_conflict": log_conflict,
+                            "architecture": "-".join(map(str, architecture)),
+                            "learning_rate": learning_rate,
+                            "best_epoch": best_epoch,
+                            **binary_metrics(y_val_array, predictions),
+                        }
+                    )
 
     return _sort_results(rows)
