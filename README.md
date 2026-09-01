@@ -18,10 +18,10 @@ python main.py
 
 ### pip
 
-```bash
-python -m venv .venv
-pip install -r requirements.txt
-python main.py
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe main.py
 ```
 
 On Windows, the command can also be:
@@ -160,4 +160,4 @@ python main.py --rebuild-data
 
 ## AI mention
 
-ChatGPT was used to support code drafting and debugging, clarify theoretical questions alongside the course material, and help structure the data pipeline, model comparison, reproducibility steps, and advised on the planning for the overall project. It was also used, together with DeepL, to support translation from French to English and to review the clarity of some parts of the report.
+ChatGPT was used to support code drafting and debugging, clarify theoretical questions alongside the course material, and help structure the data pipeline, model comparison, reproducibility steps, and support the planning of the overall project. It was also used, together with DeepL, to support translation from French to English and to review the clarity of some parts of the report.
