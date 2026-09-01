@@ -3,7 +3,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
+from sklearn.metrics import (accuracy_score, confusion_matrix, f1_score, precision_score, recall_score)
 
 
 def binary_metrics(y_true, y_pred):
@@ -43,7 +43,7 @@ def save_outputs(results, family_winners, paired_configs, results_dir):
 
     selected = [{"model_family": "persistence", "feature_set": "benchmark"}]
     selected += [{"model_family": model, "feature_set": feature_set} for model, feature_set in family_winners.items()]
-    winners = pd.DataFrame(selected).merge(results, on=["model_family", "feature_set"], how="left", validate="one_to_one").sort_values("f1", ascending=False)
+    winners = (pd.DataFrame(selected) .merge(results, on=["model_family", "feature_set"], how="left", validate="one_to_one",) .sort_values("f1", ascending=False))
     winners.to_csv(results_dir / "final_test_family_winners.csv", index=False)
 
     delta_rows = []
