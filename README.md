@@ -24,12 +24,6 @@ py -m venv .venv
 .\.venv\Scripts\python.exe main.py
 ```
 
-On Windows, the command can also be:
-
-```bash
-py main.py
-```
-
 ## Running the project
 
 The main analysis is run with:
